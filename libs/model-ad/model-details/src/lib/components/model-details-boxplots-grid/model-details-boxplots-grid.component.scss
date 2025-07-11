@@ -1,0 +1,20 @@
+@use 'styles/src/lib/variables';
+@use 'styles/src/lib/mixins';
+
+.boxplots-grid-container {
+  .boxplots-grid {
+    display: grid;
+    gap: 30px 50px;
+    grid-template-columns: 1fr;
+
+    @include mixins.respond-to('large') {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    shared-typescript-charts-angular {
+      display: flex;
+      flex-direction: column;
+      min-width: 400px;
+    }
+  }
+}

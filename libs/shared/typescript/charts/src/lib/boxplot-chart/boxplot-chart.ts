@@ -6,6 +6,7 @@ import {
   formatCategoryPointsForBoxplotTransform,
   getCategoryPointColor,
   getCategoryPointShape,
+  getCategoryPointStyle,
   getUniqueValues,
   initChart,
   setNoDataOption,
@@ -62,6 +63,8 @@ export class BoxplotChart {
       yAxisMax,
       xAxisCategoryToTooltipText,
       pointTooltipFormatter,
+      pointCategoryColors,
+      pointCategoryShapes,
     } = boxplotProps;
 
     const noPoints = points.length === 0;
@@ -162,39 +165,52 @@ export class BoxplotChart {
       },
       symbolSize: defaultPointSize,
       symbol: (point: CategoryPoint) => {
-        return hasPointCategories
-          ? getCategoryPointShape(point, pointCategories)
-          : defaultPointShape;
+        return getCategoryPointStyle(
+          point,
+          hasPointCategories,
+          pointCategoryShapes,
+          getCategoryPointShape,
+          pointCategories,
+          defaultPointShape,
+        );
       },
       itemStyle: {
         color: (params) => {
-          return hasPointCategories
-            ? getCategoryPointColor(params.value as CategoryPoint, pointCategories)
-            : defaultPointColor;
+          return getCategoryPointStyle(
+            params.value as CategoryPoint,
+            hasPointCategories,
+            pointCategoryColors,
+            getCategoryPointColor,
+            pointCategories,
+            defaultPointColor,
+          );
         },
       },
       tooltip: {
-        formatter: (param) => {
+        formatter: (params) => {
           if (pointTooltipFormatter) {
-            return pointTooltipFormatter(param.data as CategoryPoint);
+            return pointTooltipFormatter(params.data as CategoryPoint, params);
           }
-          const pt = param.data as CategoryPoint;
+          const pt = params.data as CategoryPoint;
           return `${pt.value}`;
         },
       },
     });
 
-    const titles = [
-      // Add x-axis title as a title rather than xAxis.name, because
-      // setting via xAxis.name causes cursor to change to pointer when
-      // x-axis label tooltips are used
-      {
-        text: xAxisTitle,
-        textStyle: titleTextStyle,
-        left: 'center',
-        top: 'bottom',
-      },
-    ];
+    const titles = [];
+    if (xAxisTitle) {
+      titles.push(
+        // Add x-axis title as a title rather than xAxis.name, because
+        // setting via xAxis.name causes cursor to change to pointer when
+        // x-axis label tooltips are used
+        {
+          text: xAxisTitle,
+          textStyle: titleTextStyle,
+          left: 'center',
+          top: 'bottom',
+        },
+      );
+    }
     if (title) {
       titles.push({
         text: title,

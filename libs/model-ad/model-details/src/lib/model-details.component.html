@@ -17,10 +17,20 @@
           <model-ad-model-details-omics [modelName]="model.model" />
         }
         @case ('biomarkers') {
-          <h2>Biomarkers</h2>
+          <model-ad-model-details-boxplots-selector
+            [title]="'Biomarkers'"
+            [modelName]="model.model"
+            [modelDataList]="model.biomarkers"
+            [wikiParams]="{ ownerId: 'syn66271427', wikiId: '632871' }"
+          />
         }
         @case ('pathology') {
-          <h2>Pathology</h2>
+          <model-ad-model-details-boxplots-selector
+            [title]="'Pathology'"
+            [modelName]="model.model"
+            [modelDataList]="model.pathology"
+            [wikiParams]="{ ownerId: 'syn66271427', wikiId: '632872' }"
+          />
         }
         @case ('resources') {
           <model-ad-model-details-resources [model]="model" />

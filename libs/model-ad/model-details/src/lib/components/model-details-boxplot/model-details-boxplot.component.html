@@ -1,0 +1,10 @@
+<h3>{{ modelData().age }}</h3>
+<div
+  sageBoxplot
+  [style.height]="450"
+  [points]="points()"
+  [yAxisTitle]="`${modelData().evidence_type} ${modelData().units}` | titlecase | decodeGreekEntity"
+  [pointTooltipFormatter]="pointTooltipFormatter"
+  [pointCategoryColors]="pointCategoryColors"
+  [pointCategoryShapes]="pointCategoryShapes"
+></div>

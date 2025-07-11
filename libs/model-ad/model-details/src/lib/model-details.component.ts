@@ -1,6 +1,7 @@
 import { Location } from '@angular/common';
 import { AfterViewInit, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import { Panel } from '@sagebionetworks/explorers/models';
 import { HelperService } from '@sagebionetworks/explorers/services';
@@ -8,6 +9,8 @@ import { PanelNavigationComponent } from '@sagebionetworks/explorers/ui';
 import { LoadingIconComponent } from '@sagebionetworks/explorers/util';
 import { Model, ModelsService } from '@sagebionetworks/model-ad/api-client-angular';
 import { ConfigService, ROUTE_PATHS } from '@sagebionetworks/model-ad/config';
+import { SelectModule } from 'primeng/select';
+import { ModelDetailsBoxplotsSelectorComponent } from './components/model-details-boxplots-selector/model-details-boxplots-selector.component';
 import { ModelDetailsHeroComponent } from './components/model-details-hero/model-details-hero.component';
 import { ModelDetailsOmicsComponent } from './components/model-details-omics/model-details-omics.component';
 import { ModelDetailsResourcesComponent } from './components/model-details-resources/model-details-resources.component';
@@ -20,6 +23,9 @@ import { ModelDetailsResourcesComponent } from './components/model-details-resou
     ModelDetailsOmicsComponent,
     ModelDetailsResourcesComponent,
     ModelDetailsHeroComponent,
+    ModelDetailsBoxplotsSelectorComponent,
+    FormsModule,
+    SelectModule,
   ],
   templateUrl: './model-details.component.html',
   styleUrls: ['./model-details.component.scss'],
