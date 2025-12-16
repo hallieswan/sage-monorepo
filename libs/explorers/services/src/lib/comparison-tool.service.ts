@@ -355,42 +355,39 @@ export class ComparisonToolService<T> {
       );
     } else if (!this.isPinned(id)) {
       this.updateQuery({
-        pinnedItems: [...this.query().pinnedItems, id],
+        pinnedItems: [...this.visiblePinIds(), id],
       });
-      this.updatePinnedItemsCache();
     }
   }
 
   unpinItem(id: string) {
     this.updateQuery({
-      pinnedItems: this.query().pinnedItems.filter((item) => item !== id),
+      pinnedItems: this.visiblePinIds().filter((item) => item !== id),
     });
-    this.updatePinnedItemsCache();
   }
 
   pinList(ids: string[]) {
-    const currentPins = new Set(this.query().pinnedItems);
+    const visiblePins = new Set(this.visiblePinIds());
     let itemsAdded = 0;
 
     for (const id of ids) {
-      if (currentPins.size >= this.maxPinnedItems()) {
+      if (visiblePins.size >= this.maxPinnedItems()) {
         const messagePrefix = itemsAdded === 0 ? 'No rows' : `Only ${itemsAdded} rows`;
         this.notificationService.showWarning(
           `${messagePrefix} were pinned, because you reached the maximum of ${this.maxPinnedItems()} pinned items.`,
         );
         break;
       }
-      if (currentPins.has(id)) {
+      if (visiblePins.has(id)) {
         continue;
       }
-      currentPins.add(id);
+      visiblePins.add(id);
       itemsAdded++;
     }
 
     this.updateQuery({
-      pinnedItems: Array.from(currentPins),
+      pinnedItems: Array.from(visiblePins),
     });
-    this.updatePinnedItemsCache();
   }
 
   setPinnedItems(items: string[] | null) {
@@ -398,7 +395,6 @@ export class ComparisonToolService<T> {
     this.updateQuery({
       pinnedItems: deduplicatedItems,
     });
-    this.updatePinnedItemsCache();
   }
 
   resetPinnedItems() {
@@ -535,13 +531,6 @@ export class ComparisonToolService<T> {
     return JSON.stringify(
       normalized.slice(0, this.DEFAULT_DROPDOWNS_COLUMN_SELECTION_CACHE_CUTOFF_LEVEL),
     );
-  }
-
-  private updatePinnedItemsCache(): void {
-    // Replace global cache with only visible pins, discarding pins from other views
-    this.updateQuery({
-      pinnedItems: this.visiblePinIds(),
-    });
   }
 
   setSort(multiSortMeta: SortMeta[]) {
