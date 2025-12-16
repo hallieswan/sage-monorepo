@@ -105,6 +105,17 @@ export class ComparisonToolService<T> {
   readonly filters = computed(() => this.querySignal().filters);
   readonly first = computed(() => this.pageNumber() * this.pageSize());
 
+  // pinnedItems cache may include more pins than are currently visible
+  // Used for the URL serialization
+  readonly visiblePinIds = computed(() => {
+    const visiblePinnedData = this.pinnedData();
+    const rowIdKey = this.viewConfig().rowIdDataKey;
+    return visiblePinnedData.map((item: T) => {
+      const id = (item as Record<string, unknown>)[rowIdKey];
+      return String(id);
+    });
+  });
+
   private readonly syncToUrlInProgress = signal(false);
   private lastSerializedState: string | null = null;
   private initialSelection: string[] | undefined;
@@ -120,9 +131,9 @@ export class ComparisonToolService<T> {
         return;
       }
 
-      const pinnedItems = this.pinnedItems();
+      const visiblePinIds = this.visiblePinIds();
       const dropdownSelection = this.dropdownSelection();
-      const state = this.serializeSyncState(pinnedItems, dropdownSelection);
+      const state = this.serializeSyncState(visiblePinIds, dropdownSelection);
 
       this.syncStateToUrl(state);
     });
@@ -527,16 +538,9 @@ export class ComparisonToolService<T> {
   }
 
   private updatePinnedItemsCache(): void {
-    const visiblePinnedData = this.pinnedData();
-    const rowIdKey = this.viewConfigSignal().rowIdDataKey;
-
-    const visiblePinnedIds = visiblePinnedData.map((item: T) => {
-      const id = (item as Record<string, unknown>)[rowIdKey];
-      return String(id);
-    });
-
+    // Replace global cache with only visible pins, discarding pins from other views
     this.updateQuery({
-      pinnedItems: visiblePinnedIds,
+      pinnedItems: this.visiblePinIds(),
     });
   }
 
@@ -631,19 +635,17 @@ export class ComparisonToolService<T> {
   }
 
   private serializeSyncState(
-    pinnedItems: Set<string>,
+    visiblePinIds: string[],
     dropdownSelection: string[],
   ): ComparisonToolUrlParams {
-    const pinned = Array.from(pinnedItems);
-
     return {
-      pinnedItems: pinned.length ? pinned : null,
+      pinnedItems: visiblePinIds.length ? visiblePinIds : null,
       categories: dropdownSelection.length ? dropdownSelection : null,
     };
   }
 
   private syncCurrentStateToUrl(): void {
-    this.syncStateToUrl(this.serializeSyncState(this.pinnedItems(), this.dropdownSelection()));
+    this.syncStateToUrl(this.serializeSyncState(this.visiblePinIds(), this.dropdownSelection()));
   }
 
   /**
@@ -672,7 +674,7 @@ export class ComparisonToolService<T> {
 
   private updateSerializedStateCache(): void {
     this.lastSerializedState = JSON.stringify(
-      this.serializeSyncState(this.pinnedItems(), this.dropdownSelection()),
+      this.serializeSyncState(this.visiblePinIds(), this.dropdownSelection()),
     );
   }
 
