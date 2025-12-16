@@ -531,14 +531,16 @@ export class ComparisonToolService<T> {
   }
 
   private updatePinnedItemsCache(): void {
-    const currentSelection = this.dropdownSelection();
-    const currentPins = this.pinnedItems();
-    const key = this.dropdownKey(currentSelection);
+    const visiblePinnedData = this.pinnedData();
+    const rowIdKey = this.viewConfigSignal().rowIdDataKey;
 
-    this.pinnedItemsForDropdownsSignal.update((cache) => {
-      const next = new Map(cache);
-      next.set(key, new Set(currentPins));
-      return next;
+    const visiblePinnedIds = visiblePinnedData.map((item: T) => {
+      const id = (item as Record<string, unknown>)[rowIdKey];
+      return String(id);
+    });
+
+    this.updateQuery({
+      pinnedItems: visiblePinnedIds,
     });
   }
 
