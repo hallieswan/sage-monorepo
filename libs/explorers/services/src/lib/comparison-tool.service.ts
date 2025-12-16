@@ -71,7 +71,6 @@ export class ComparisonToolService<T> {
   private readonly columnsForDropdownsSignal = signal<Map<string, ComparisonToolColumn[]>>(
     new Map(),
   );
-  private readonly pinnedItemsForDropdownsSignal = signal<Map<string, Set<string>>>(new Map());
   private readonly unpinnedDataSignal = signal<T[]>([]);
   private readonly pinnedDataSignal = signal<T[]>([]);
   private readonly querySignal = signal<ComparisonToolQuery>({
@@ -226,7 +225,6 @@ export class ComparisonToolService<T> {
     }
 
     this.columnsForDropdownsSignal.set(columnsMap);
-    this.pinnedItemsForDropdownsSignal.set(new Map());
     this.initialSelection = undefined;
 
     this.resolveUrlState(params, { isInitial: true });
@@ -617,19 +615,7 @@ export class ComparisonToolService<T> {
       return;
     }
 
-    // When navigating back without URL pins, check if we have cached pins for current dropdown
-    const currentKey = this.dropdownKey(this.dropdownSelection());
-    const cachedPinnedItems = this.pinnedItemsForDropdownsSignal().get(currentKey);
-
-    // Restore cached pins and sync to URL
-    if (cachedPinnedItems && cachedPinnedItems.size > 0) {
-      this.setPinnedItems(Array.from(cachedPinnedItems));
-      this.syncToUrlInProgress.set(false);
-      this.scheduleUrlSyncFromCurrentState();
-      return;
-    }
-
-    // No URL pins and no cached pins - clear everything and sync to URL
+    // No URL pins - keep current pins and sync to URL
     this.syncToUrlInProgress.set(false);
     this.scheduleUrlSyncFromCurrentState();
   }
