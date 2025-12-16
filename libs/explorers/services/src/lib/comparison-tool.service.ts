@@ -453,13 +453,11 @@ export class ComparisonToolService<T> {
       return;
     }
 
-    // Restore pinned items for new selection from cache (or empty if not cached)
-    const newKey = this.dropdownKey(selection);
-    const cachedPinnedItems = this.pinnedItemsForDropdownsSignal().get(newKey);
-
+    // Preserve current pins when changing dropdown selection
+    const currentPins = this.query().pinnedItems;
     this.updateQuery({
       categories: selection,
-      pinnedItems: cachedPinnedItems ? Array.from(cachedPinnedItems) : [],
+      pinnedItems: currentPins,
       pageNumber: this.FIRST_PAGE_NUMBER,
     });
   }
