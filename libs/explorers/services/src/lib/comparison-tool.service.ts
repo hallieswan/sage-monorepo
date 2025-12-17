@@ -589,9 +589,13 @@ export class ComparisonToolService<T> {
 
     const urlPinnedItems = params.pinnedItems ?? undefined;
     const hasUrlPins = Array.isArray(urlPinnedItems) && urlPinnedItems.length > 0;
+    const currentVisiblePins = this.visiblePinIds();
 
-    // User navigated directly to this CT with ?pinned=<ids> in URL - restore those pins
-    if (hasUrlPins) {
+    // Check if URL pins differ from what we would serialize
+    const urlPinsMatchVisiblePins = hasUrlPins && isEqual(urlPinnedItems, currentVisiblePins);
+
+    // First visit to this CT with URL pins - restore those pins
+    if (options.isInitial && hasUrlPins) {
       this.setPinnedItems(urlPinnedItems);
       this.updateSerializedStateCache();
       this.initialPinsResolved = true;
@@ -605,6 +609,14 @@ export class ComparisonToolService<T> {
       this.syncToUrlInProgress.set(false);
       this.scheduleUrlSyncFromCurrentState();
       this.initialPinsResolved = true;
+      return;
+    }
+
+    // URL pins changed externally (user edited URL or clicked link with different pins)
+    if (!options.isInitial && hasUrlPins && !urlPinsMatchVisiblePins) {
+      this.setPinnedItems(urlPinnedItems);
+      this.updateSerializedStateCache();
+      this.syncToUrlInProgress.set(false);
       return;
     }
 
