@@ -43,6 +43,13 @@ export interface VariantLineSeriesOptions {
    * at 3px, gene-structure at 2px.
    */
   lineWidthPx?: number;
+  /**
+   * Optional fill color for ALL variants, ignoring selection state. Used on
+   * the gene-structure track where every variant is teal regardless of whether
+   * it's the primary or secondary selection (the selection encoding lives on
+   * the chromosome track via badges instead).
+   */
+  fixedColor?: string;
 }
 
 /**
@@ -63,6 +70,7 @@ export function variantLineSeries(opts: VariantLineSeriesOptions): CustomSeriesO
     z,
     tickHeightPx = BAR_HEIGHT_PX,
     lineWidthPx,
+    fixedColor,
   } = opts;
   const states = variants.map((v) => resolveVariantState(v.variantId, primary, secondary));
   const tooltipsByIndex = variants.map((v) => tooltipFormatter(v));
@@ -88,13 +96,14 @@ export function variantLineSeries(opts: VariantLineSeriesOptions): CustomSeriesO
         x = Math.round(xLeft) + 0.5 - minWidth / 2;
       }
 
+      const fill = fixedColor ?? style.color;
       const y = grid.y + grid.height / 2 - tickHeightPx / 2;
       return {
         type: 'rect',
         shape: { x, y, width, height: tickHeightPx },
-        style: { fill: style.color },
+        style: { fill },
         emphasisDisabled: true,
-        states: { emphasis: { style: { fill: style.color } } },
+        states: { emphasis: { style: { fill } } },
       };
     },
     tooltip: {

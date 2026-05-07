@@ -421,6 +421,10 @@ export class LocusBrowserChart {
         yAxisIndex: GENE_STRUCTURE_GRID_INDEX,
         z: 4,
         lineWidthPx: GENE_STRUCTURE_VARIANT_LINE_WIDTH_PX,
+        // Selection state doesn't recolor variants on the gene-structure track;
+        // every tick stays teal. Selection is encoded via the chromosome-track
+        // badges instead.
+        fixedColor: VARIANT_STYLES.default.color,
       }),
       decorationSeries({
         items: tssList.map((tss) => ({
