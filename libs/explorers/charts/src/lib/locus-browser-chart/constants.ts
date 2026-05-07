@@ -174,12 +174,6 @@ export const VARIANT_GROUP_BUBBLE_STYLE = {
 };
 
 // ─── Gene-marker visual hierarchy ─────────────────────────────────────────────
-// Plan ("Gene-marker visual hierarchy" table):
-// | State              | Stroke    | Stroke width | Label color | Label weight | Label size |
-// | Default            | `#D0D4D9` | 1.5px        | `#AEB5BC`   | 400          | 18px       |
-// | Highlighted        | `#ADC7E7` | 2.5px        | `#437DC8`   | 400          | 18px       |
-// | Secondary selected | `#437DC8` | 2.5px        | `#437DC8`   | 700          | 18px       |
-// | Primary selected   | `#437DC8` | 3.5px        | `#437DC8`   | 700          | 24px       |
 
 export interface GeneMarkerStyle {
   stroke: string;
@@ -188,6 +182,17 @@ export interface GeneMarkerStyle {
   labelWeight: number;
   labelSize: number;
 }
+
+// Shared base for the three "blue" states. `secondary` and `primary` spread
+// from this so each state's body shows only the fields that differ from the
+// highlighted baseline.
+const HIGHLIGHTED_GENE_MARKER_STYLE: GeneMarkerStyle = {
+  stroke: '#ADC7E7',
+  strokeWidth: 2.5,
+  labelColor: '#437DC8',
+  labelWeight: 400,
+  labelSize: 18,
+};
 
 export const GENE_MARKER_STYLES: Record<
   'default' | 'highlighted' | 'secondary' | 'primary',
@@ -200,24 +205,14 @@ export const GENE_MARKER_STYLES: Record<
     labelWeight: 400,
     labelSize: 18,
   },
-  highlighted: {
-    stroke: '#ADC7E7',
-    strokeWidth: 2.5,
-    labelColor: '#437DC8',
-    labelWeight: 400,
-    labelSize: 18,
-  },
-  secondary: {
-    stroke: '#437DC8',
-    strokeWidth: 2.5,
-    labelColor: '#437DC8',
-    labelWeight: 700,
-    labelSize: 18,
-  },
+  highlighted: HIGHLIGHTED_GENE_MARKER_STYLE,
+  // Highlighted + bolder label.
+  secondary: { ...HIGHLIGHTED_GENE_MARKER_STYLE, labelWeight: 700 },
+  // Highlighted + deeper/thicker stroke + bolder, larger label.
   primary: {
+    ...HIGHLIGHTED_GENE_MARKER_STYLE,
     stroke: '#437DC8',
     strokeWidth: 3.5,
-    labelColor: '#437DC8',
     labelWeight: 700,
     labelSize: 24,
   },
