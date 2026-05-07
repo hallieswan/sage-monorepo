@@ -39,7 +39,11 @@ import {
   GRID_LEFT,
   GRID_RIGHT,
   INITIAL_CHART_HEIGHT_PX,
+  TES_NEGATIVE_GEOMETRY,
+  TES_POSITIVE_GEOMETRY,
   TRACK_LABEL_STYLES,
+  TSS_NEGATIVE_GEOMETRY,
+  TSS_POSITIVE_GEOMETRY,
   VARIANT_BADGE_STYLE,
   VARIANT_STYLES,
 } from './constants';
@@ -60,8 +64,7 @@ import {
   geneMarkerSeries,
   intronSeriesDefaults,
   segmentSeries,
-  tesSeries,
-  tssSeries,
+  decorationSeries,
   utrSeriesDefaults,
   variantGroupSeries,
   variantLineSeries,
@@ -419,26 +422,28 @@ export class LocusBrowserChart {
         z: 4,
         lineWidthPx: GENE_STRUCTURE_VARIANT_LINE_WIDTH_PX,
       }),
-      tssSeries({
+      decorationSeries({
         items: tssList.map((tss) => ({
           position: tss.position,
           tooltipHtml:
             tss.tooltipHtml ??
             formatGeneStructureItemTooltip(tss, geneStructureTrack.gene, geneStructureTrack.strand),
         })),
-        strand: geneStructureTrack.strand,
+        geometry:
+          geneStructureTrack.strand === 'negative' ? TSS_NEGATIVE_GEOMETRY : TSS_POSITIVE_GEOMETRY,
         xAxisIndex: GENE_STRUCTURE_GRID_INDEX,
         yAxisIndex: GENE_STRUCTURE_GRID_INDEX,
         z: 5,
       }),
-      tesSeries({
+      decorationSeries({
         items: tesList.map((tes) => ({
           position: tes.position,
           tooltipHtml:
             tes.tooltipHtml ??
             formatGeneStructureItemTooltip(tes, geneStructureTrack.gene, geneStructureTrack.strand),
         })),
-        strand: geneStructureTrack.strand,
+        geometry:
+          geneStructureTrack.strand === 'negative' ? TES_NEGATIVE_GEOMETRY : TES_POSITIVE_GEOMETRY,
         xAxisIndex: GENE_STRUCTURE_GRID_INDEX,
         yAxisIndex: GENE_STRUCTURE_GRID_INDEX,
         z: 5,

@@ -299,9 +299,20 @@ export interface DecorationGeometry {
   viewBoxWidth: number;
   viewBoxHeight: number;
   stemNormalized: number;
+  /**
+   * Direction the symbol extends from the bar.
+   *   - 'up'   → anchor sits at the BOTTOM of the viewBox; the rest of the
+   *             glyph rises above the bar (positive strand).
+   *   - 'down' → anchor sits at the TOP of the viewBox; the glyph hangs below
+   *             the bar (negative strand).
+   */
+  extendsFromBar: 'up' | 'down';
 }
 
-export const TSS_GEOMETRY: DecorationGeometry = {
+// Positive-strand TSS: anchor circle at bottom-left (viewBox y≈21), stem
+// extending up, arrow tip at top-right pointing up-and-right (5'→3' direction).
+// Source: tmp/images/tss-positive.svg
+export const TSS_POSITIVE_GEOMETRY: DecorationGeometry = {
   pathData:
     'M13.7969 2.88672L8.79688 5.77344V3.38672H6.4502C5.21711 3.38673 4.25684 3.88143 ' +
     '3.59668 4.67188C2.92925 5.47124 2.54692 6.60149 2.54688 7.88672V19.1436C3.38541 ' +
@@ -312,9 +323,33 @@ export const TSS_GEOMETRY: DecorationGeometry = {
   viewBoxWidth: 14,
   viewBoxHeight: 24,
   stemNormalized: 2 / 14,
+  extendsFromBar: 'up',
 };
 
-export const TES_GEOMETRY: DecorationGeometry = {
+// Negative-strand TSS: arrow tip at bottom-left pointing left (3'←5'), stem
+// extending up, small circle anchor at top-right.
+// Source: tmp/images/tss-negative.svg
+export const TSS_NEGATIVE_GEOMETRY: DecorationGeometry = {
+  pathData:
+    'M0 20.1797L5 17.293V19.6797H7.34668C8.57984 19.6797 9.54003 19.1851 10.2002 ' +
+    '18.3945C10.8677 17.5951 11.25 16.465 11.25 15.1797V3.92285C10.4115 3.68483 9.79688 ' +
+    '2.91482 9.79688 2C9.79688 0.89543 10.6923 0 11.7969 0C12.9014 0 13.7969 0.89543 ' +
+    '13.7969 2C13.7969 2.94855 13.1361 3.74082 12.25 3.94629V15.1797C12.25 16.6557 ' +
+    '11.8114 18.0259 10.9678 19.0361C10.1167 20.0552 8.87483 20.6797 7.34668 ' +
+    '20.6797H5V23.0664L0 20.1797Z',
+  viewBoxWidth: 14,
+  viewBoxHeight: 24,
+  // Stem sits on the right side of the negative-strand glyph (around viewBox
+  // x≈11.75, midway between the stem's left edge at 11.25 and right edge at
+  // 12.25). The bar's bp position aligns with this stem.
+  stemNormalized: 11.75 / 14,
+  extendsFromBar: 'down',
+};
+
+// Positive-strand TES: small anchor circle at the bar (bottom of viewBox),
+// stem, larger cap circle at top.
+// Source: tmp/images/tse-positive.svg
+export const TES_POSITIVE_GEOMETRY: DecorationGeometry = {
   pathData:
     'M2.66699 0C4.13975 0 5.33398 1.19423 5.33398 2.66699C5.33398 3.96868 4.40051 ' +
     '5.04995 3.16699 5.28418V18.3916C4.06844 18.5857 4.74414 19.3872 4.74414 20.3467C ' +
@@ -323,7 +358,24 @@ export const TES_GEOMETRY: DecorationGeometry = {
     '5.04995 0 3.96868 0 2.66699C0 1.19423 1.19423 0 2.66699 0Z',
   viewBoxWidth: 6,
   viewBoxHeight: 23,
-  stemNormalized: 2.744 / 6,
+  stemNormalized: 2.667 / 6,
+  extendsFromBar: 'up',
+};
+
+// Negative-strand TES: large cap circle at the bar (bottom of viewBox), stem,
+// small circle at top -- vertically inverted relative to TES-positive.
+// Source: tmp/images/tse-negative.svg
+export const TES_NEGATIVE_GEOMETRY: DecorationGeometry = {
+  pathData:
+    'M2.66699 22.3467C4.13975 22.3467 5.33398 21.1524 5.33398 19.6797C5.33398 18.378 ' +
+    '4.40051 17.2967 3.16699 17.0625V3.95508C4.06841 3.76099 4.74414 2.95945 4.74414 ' +
+    '2C4.74388 0.895655 3.84855 0 2.74414 0C1.63973 0 0.744404 0.895655 0.744141 ' +
+    '2C0.744141 2.90382 1.34392 3.66726 2.16699 3.91504V17.0625C0.933472 17.2967 0 ' +
+    '18.378 0 19.6797C0 21.1524 1.19423 22.3467 2.66699 22.3467Z',
+  viewBoxWidth: 6,
+  viewBoxHeight: 23,
+  stemNormalized: 2.667 / 6,
+  extendsFromBar: 'down',
 };
 
 // ─── Tooltip backgrounds and text ─────────────────────────────────────────────
