@@ -1,5 +1,4 @@
 import type { CustomSeriesOption } from 'echarts';
-import { CallbackDataParams } from 'echarts/types/dist/shared';
 import {
   DecorationGeometry,
   TOOLTIP_BACKGROUNDS,
@@ -7,6 +6,7 @@ import {
   TSS_TES_FILL,
   makeTooltipConfig,
 } from '../constants';
+import { tooltipFormatterByIndex } from '../tooltip-formatter';
 import type { GridCoordSys } from '../../types';
 
 export interface TssTesItem {
@@ -82,10 +82,7 @@ export function decorationSeries(opts: TssTesSeriesOptions): CustomSeriesOption 
     },
     tooltip: {
       ...makeTooltipConfig(TOOLTIP_BACKGROUNDS['tss-tes']),
-      formatter: (rawParams) => {
-        const params = rawParams as CallbackDataParams;
-        return tooltipsByIndex[params.dataIndex] ?? '';
-      },
+      formatter: tooltipFormatterByIndex(tooltipsByIndex),
     },
     emphasis: { itemStyle: {} },
     z,

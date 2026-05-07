@@ -1,64 +1,33 @@
 import type { EChartsOption } from 'echarts';
 
-// All values in this file map directly to the spec in `tmp/plans/gene-bar-chart.md`.
-// Section headers below cite the plan section the values come from. Where the plan
-// gives only a qualitative description (e.g. "blue", "purple"), the inferred hex is
-// flagged with INFERRED + the plan reference that motivated the choice.
-
-// ─── Bar body and gene-structure segments ─────────────────────────────────────
-// Plan: "Bar shape" -- "4px corner radius on all four corners and fill color `#F1F2F4`"
-// Plan: "the bar reads as a continuous gray surface that exon and UTR segments paint over"
-// Plan: "gene-detail bar showing exons (blue), UTRs (purple), introns (gray, computed)"
-
 export const BAR_CORNER_RADIUS = 4;
 export const BAR_FILL = '#F1F2F4';
-export const INTRON_FILL = '#F1F2F4'; // Plan: introns share the bar's gray surface
+// Introns share the bar's gray surface so they read as gaps between segments.
+export const INTRON_FILL = '#F1F2F4';
 
 export const EXON_FILL = '#A5C7F3';
 export const UTR_FILL = '#D8A5F3';
 
-// Plan ("TSS and TES shapes ..."): "Fill color is the existing `tss` / `tes` constant
-// (`#4A5056`)"
 export const TSS_TES_FILL = '#4A5056';
 
-// All text in the locus browser uses DM Sans (with a sans-serif fallback).
 export const FONT_FAMILY = "'DM Sans', sans-serif";
 
-// ─── Gene-structure track range padding ───────────────────────────────────────
-// Plan: "padding = 0.05 * (coreSpan.end - coreSpan.start)"
-
 export const GENE_STRUCTURE_RANGE_PADDING_FRACTION = 0.05;
-
-// ─── Bar dimensions and gap ───────────────────────────────────────────────────
-// Design spec: each bar is 18px high; gap between the chromosome and gene-structure
-// bars is 62px.
 
 export const BAR_HEIGHT_PX = 18;
 export const GAP_BETWEEN_BARS_PX = 62;
 
-// ─── Grid layout (absolute pixel positions) ───────────────────────────────────
-// Plan ("Track labels"): "a sensible default reserves ~140px on the left"
-//
-// Vertical layout, top → bottom of the chart (fixed pixel values, so the chart's
-// total height is deterministic and bar positions don't shift on resize):
-//   1. CHROMOSOME_GRID_TOP_PX reserved for rotated gene-marker labels and the
-//      200-px leader that connects each label down to its bar tick.
-//   2. Chromosome grid spans CHROMOSOME_GRID_TOP_PX → CHROMOSOME_GRID_TOP_PX +
-//      CHROMOSOME_GRID_HEIGHT_PX. Bar sits at its vertical center.
-//   3. Bracket transition zone, sized so the chromosome bar bottom and the
-//      gene-structure bar top are exactly GAP_BETWEEN_BARS_PX apart.
-//   4. Gene-structure grid; bar sits at its vertical center.
-//   5. BOTTOM_PADDING_PX reserved for chart bottom padding.
+// Vertical layout (top → bottom): track-label gutter on the left, chromosome
+// grid (gene-marker leader + bar), bracket transition zone, gene-structure grid,
+// bottom padding. Pixel values are fixed so bar positions don't shift on resize.
 
 export const TRACK_LABEL_GUTTER_PX = 140;
 export const GRID_LEFT = TRACK_LABEL_GUTTER_PX;
 export const GRID_RIGHT = 24;
 export const BOTTOM_PADDING_PX = 30;
 
-// Top padding accommodates the 200-px leader plus room for a vertical label at
-// the largest size, plus headroom for one collision-avoidance lane (see
-// GENE_MARKER_LANE_BUMP_PX). 300px = 200 (lane-0 leader) + 60 (lane-1 bump) +
-// ~40 buffer for label height.
+// Top padding accommodates the 200-px leader plus headroom for the rotated
+// label at its largest size (300 = 200 leader + ~100 label/buffer).
 export const CHROMOSOME_GRID_TOP_PX = 300;
 export const CHROMOSOME_GRID_HEIGHT_PX = 80;
 export const GENE_STRUCTURE_GRID_HEIGHT_PX = 80;
@@ -77,103 +46,59 @@ export const INITIAL_CHART_HEIGHT_PX = `${
   GENE_STRUCTURE_GRID_TOP_PX + GENE_STRUCTURE_GRID_HEIGHT_PX + BOTTOM_PADDING_PX
 }px`;
 
-// ─── Gene-marker leader-line geometry ─────────────────────────────────────────
-// Reference: tmp/images/example-gene-marker-ling.svg -- 85×200 viewBox with a
-// path of three segments (bottom stub, diagonal kink, top vertical). The label
-// sits at the top of the top-vertical segment, horizontally offset from the bar
-// attachment so labels can pack densely without text colliding with neighbors'
-// leader lines.
-
-// Leader segment lengths (vertical extents) are fixed; the diagonal's
-// horizontal endpoint is computed per marker by the chart class so labels
-// spread to avoid collisions while remaining at the same y. By default the
-// label sits GENE_MARKER_LEADER_DIAGONAL_DX_PX horizontally from the marker
-// (matching the SVG reference), so every leader has a visible bend. When
-// neighbors crowd a marker, the chart class adjusts that horizontal endpoint
-// so the diagonal's angle changes -- the leader keeps its three-segment shape
-// but bends more or less steeply.
+// Gene-marker leader: three-segment path (bottom stub, diagonal kink, top
+// vertical) anchored to the bar; the label sits at the top, rotated -90°. The
+// diagonal's horizontal endpoint is computed per marker by the chart so labels
+// pack densely without text colliding with neighbors' leaders.
 export const GENE_MARKER_LEADER_HEIGHT_PX = 200;
 export const GENE_MARKER_LEADER_BOTTOM_STUB_PX = 15.56;
 export const GENE_MARKER_LEADER_DIAGONAL_DX_PX = -82.8; // negative = label is to the left
 export const GENE_MARKER_LEADER_DIAGONAL_DY_PX = -80.8; // negative = upward
 export const GENE_MARKER_LEADER_TOP_VERTICAL_PX = 103.6;
-
-// ─── Variant grouping ─────────────────────────────────────────────────────────
-// Plan ("Pre-processing utilities"): "default threshold 16px"
+// Floor on per-label horizontal spacing when markers crowd together.
+export const GENE_MARKER_LABEL_MIN_SPACING_PX = 22;
 
 export const DEFAULT_GROUPING_THRESHOLD_PX = 16;
 
-// ─── Variant tick heights (absolute pixels) ──────────────────────────────────
-// Variants on the gene-structure track sit at the bar height (18px). Variants
-// on the chromosome track are taller -- they extend slightly above and below
-// the bar so they read as ticks rather than in-bar segments.
-
+// Variants on the gene-structure track sit at bar height. On the chromosome
+// track they extend above and below so they read as ticks, not segments.
 export const CHROMOSOME_VARIANT_TICK_HEIGHT_PX = 28;
 export const GENE_STRUCTURE_VARIANT_TICK_HEIGHT_PX = BAR_HEIGHT_PX;
 
-// Variant tick *width* is track-specific. Most variants span only a few bp, which
-// projects to sub-pixel width, so the renderer falls back to these absolute pixel
-// widths.
+// Variants almost always span only a few bp (sub-pixel width), so the renderer
+// falls back to these absolute widths per track.
 export const CHROMOSOME_VARIANT_LINE_WIDTH_PX = 3;
 export const GENE_STRUCTURE_VARIANT_LINE_WIDTH_PX = 2;
 
-// ─── TSS / TES decoration target height ──────────────────────────────────────
-// The decoration extends upward from the bar center; height is set in absolute
-// pixels so it doesn't shrink/grow with grid dimensions. The TES SVG is natively
-// 23px tall; the TSS SVG (24px native) scales to 23px to match.
-
 export const TSS_TES_DECORATION_HEIGHT_PX = 23;
-
-// ─── Variant color ────────────────────────────────────────────────────────────
-// Per design feedback, all variant ticks, connector lines, and badge backgrounds
-// are teal. Primary and secondary selections are differentiated by the badge's
-// vertical offset (primary higher above the bar, secondary lower), not by
-// color or stroke width. Tick widths are track-specific
-// (CHROMOSOME_VARIANT_LINE_WIDTH_PX, GENE_STRUCTURE_VARIANT_LINE_WIDTH_PX).
 
 export const VARIANT_COLOR = '#469DA0';
 
-// Persistent badge for selected variants on the chromosome track only (not on the
-// gene-structure track). A vertical connector line drops from the bar up to the
-// badge. Primary-selected badges sit higher above the bar than secondary ones, so
-// stacked selections at the same locus stay readable.
-//
-// `primaryTopFromBarBottomPx` / `secondaryTopFromBarBottomPx` are the design-spec
-// distances from the bar's bottom edge up to the badge's top edge.
+// Persistent badge for selected variants on the chromosome track. Primary
+// badges sit higher above the bar than secondary so stacked selections at the
+// same locus stay readable.
 export const VARIANT_BADGE_STYLE = {
   textColor: '#FFFFFF',
   fontSize: 12,
   fontWeight: 700,
   paddingX: 6,
   paddingY: 3,
-  height: 18, // fontSize + 2 × paddingY
+  height: 18,
   cornerRadius: BAR_CORNER_RADIUS,
   primaryTopFromBarBottomPx: 72,
   secondaryTopFromBarBottomPx: 52,
   connectorStrokeWidth: 2,
 };
 
-// ─── Variant-group bubble styling ─────────────────────────────────────────────
-// Plan ("Variant-group bubble styling" table):
-// | Background color  | `#469DA0`                                          |
-// | Text color        | `#FFFFFF`                                          |
-// | Font size         | 14px                                               |
-// | Font weight       | 700                                                |
-// | Content           | exact member count (no cap; e.g. `2`, `12`, `247`) |
-// Plan: "rounded rectangle (corner radius matching the height) sized to fit the count
-// text with horizontal padding"
-
 export const VARIANT_GROUP_BUBBLE_STYLE = {
-  bgColor: '#469DA0', // Plan
-  textColor: '#FFFFFF', // Plan
-  fontSize: 14, // Plan
-  fontWeight: 700, // Plan
+  bgColor: '#469DA0',
+  textColor: '#FFFFFF',
+  fontSize: 14,
+  fontWeight: 700,
   paddingX: 0,
-  height: 22, // INFERRED -- bubble height
+  height: 22,
   cornerRadius: 4,
 };
-
-// ─── Gene-marker visual hierarchy ─────────────────────────────────────────────
 
 export interface GeneMarkerStyle {
   stroke: string;
@@ -221,15 +146,9 @@ export const GENE_MARKER_STYLES: Record<
 // Design spec: labels read vertically (bottom-up) at the leader's top end.
 export const GENE_MARKER_LABEL_ROTATION_DEG = -90;
 
-// ─── Connecting brackets between grids ────────────────────────────────────────
-// Plan ("Connecting brackets ..."): "stroke `#AEB5BC`, stroke-width `1px`, no fill"
-//
-// Bracket geometry tweaks from design feedback:
-//   - Left and right tips don't meet at a point; they sit BRACKET_TIP_GAP_PX apart
-//     under the primary gene marker.
-//   - Bracket tips sit BRACKET_TOP_GAP_PX below the chromosome bar bottom.
-//   - Bracket bottom sits BRACKET_BOTTOM_GAP_PX above the gene-structure bar top.
-
+// Brackets connect the primary gene marker on the chromosome track down to the
+// full bp range on the gene-structure track. Left and right tips sit
+// BRACKET_TIP_GAP_PX apart under the marker (not meeting at a point).
 export const BRACKET_STYLE = {
   stroke: '#AEB5BC',
   lineWidth: 1,
@@ -237,24 +156,8 @@ export const BRACKET_STYLE = {
 export const BRACKET_TIP_GAP_PX = 6;
 export const BRACKET_TOP_GAP_PX = 10;
 export const BRACKET_BOTTOM_GAP_PX = 16;
-
-// Bracket shape (per design ref tmp/images/example-bracket-line.svg):
-//   short vertical stem on the chromosome side → rounded corner →
-//   long horizontal segment → rounded corner →
-//   shorter vertical stem on the gene-structure side.
-// Total height is GAP_BETWEEN_BARS - TOP_GAP - BOTTOM_GAP = 36px, and equals
-// BRACKET_TOP_STEM_PX + 2*BRACKET_CORNER_RADIUS_PX + (implicit bottom stem).
 export const BRACKET_TOP_STEM_PX = 14.8;
 export const BRACKET_CORNER_RADIUS_PX = 8;
-
-// ─── Track labels (left of each grid) ─────────────────────────────────────────
-// Plan ("Track labels (left of each grid)" table):
-// | Track            | Label                              | Font size | Font weight |
-// | Chromosome (sub) | `Base pairs {start}—{end}`         | 12px      | 400         |
-// | Chromosome (main)| `Chromosome {chromosome}`          | 14px      | 700         |
-// | Gene structure   | `Gene Structure` (literal)         | 14px      | 700         |
-//
-// The plan's track-label table has no `color` column; design has confirmed `#353A3F`.
 
 export interface TrackLabelStyle {
   fontSize: number;
@@ -267,16 +170,11 @@ export const TRACK_LABEL_STYLES: Record<'main' | 'sub', TrackLabelStyle> = {
   sub: { fontSize: 12, fontWeight: 400, color: '#353A3F' },
 };
 
-// ─── TSS / TES decoration geometry ────────────────────────────────────────────
-// Plan ("TSS and TES shapes" table):
-// | Decoration | Source SVG                                  | viewBox |
-// | TES        | `tmp/plans/gene-bar-chart-tes-positive.svg` | 6×23    |
-// | TSS        | `tmp/plans/gene-bar-chart-tss-positive.svg` | 14×24   |
-//
-// `stemNormalized` is the fraction of viewBox width where the stem (anchor circle that
-// touches the bar) sits. Computed by inspecting each SVG path: TSS stem center at
-// viewBox x≈2 of 14; TES bottom-anchor circle center at viewBox x≈2.744 of 6.
+// Horizontal offset of the track-label text block from the left edge.
+export const TRACK_LABEL_X_OFFSET_PX = 16;
 
+// `stemNormalized` is the fraction of viewBox width where the bar-anchor sits:
+// TSS stem at x≈2 of 14; TES anchor at x≈2.744 of 6.
 export interface DecorationGeometry {
   pathData: string;
   viewBoxWidth: number;
@@ -292,9 +190,8 @@ export interface DecorationGeometry {
   extendsFromBar: 'up' | 'down';
 }
 
-// Positive-strand TSS: anchor circle at bottom-left (viewBox y≈21), stem
-// extending up, arrow tip at top-right pointing up-and-right (5'→3' direction).
-// Source: tmp/images/tss-positive.svg
+// Positive-strand TSS: anchor circle at bottom-left, stem extending up, arrow
+// tip at top-right pointing up-and-right (5'→3' direction).
 export const TSS_POSITIVE_GEOMETRY: DecorationGeometry = {
   pathData:
     'M13.7969 2.88672L8.79688 5.77344V3.38672H6.4502C5.21711 3.38673 4.25684 3.88143 ' +
@@ -311,7 +208,6 @@ export const TSS_POSITIVE_GEOMETRY: DecorationGeometry = {
 
 // Negative-strand TSS: arrow tip at bottom-left pointing left (3'←5'), stem
 // extending up, small circle anchor at top-right.
-// Source: tmp/images/tss-negative.svg
 export const TSS_NEGATIVE_GEOMETRY: DecorationGeometry = {
   pathData:
     'M0 20.1797L5 17.293V19.6797H7.34668C8.57984 19.6797 9.54003 19.1851 10.2002 ' +
@@ -331,7 +227,6 @@ export const TSS_NEGATIVE_GEOMETRY: DecorationGeometry = {
 
 // Positive-strand TES: small anchor circle at the bar (bottom of viewBox),
 // stem, larger cap circle at top.
-// Source: tmp/images/tse-positive.svg
 export const TES_POSITIVE_GEOMETRY: DecorationGeometry = {
   pathData:
     'M2.66699 0C4.13975 0 5.33398 1.19423 5.33398 2.66699C5.33398 3.96868 4.40051 ' +
@@ -347,7 +242,6 @@ export const TES_POSITIVE_GEOMETRY: DecorationGeometry = {
 
 // Negative-strand TES: large cap circle at the bar (bottom of viewBox), stem,
 // small circle at top -- vertically inverted relative to TES-positive.
-// Source: tmp/images/tse-negative.svg
 export const TES_NEGATIVE_GEOMETRY: DecorationGeometry = {
   pathData:
     'M2.66699 22.3467C4.13975 22.3467 5.33398 21.1524 5.33398 19.6797C5.33398 18.378 ' +
@@ -360,18 +254,6 @@ export const TES_NEGATIVE_GEOMETRY: DecorationGeometry = {
   stemNormalized: 2.667 / 6,
   extendsFromBar: 'down',
 };
-
-// ─── Tooltip backgrounds and text ─────────────────────────────────────────────
-// Plan ("Default tooltip templates" table):
-// | Type                     | Background |
-// | variant (chromosome)     | `#388C95`  |
-// | variant (gene-structure) | `#388C95`  |
-// | TSS                      | `#22252A`  |
-// | UTR                      | `#22252A`  |
-// | TES                      | `#22252A`  |
-// | exon                     | `#2C5182`  |
-// | intron                   | `#2C5182`  |
-// Plan: "Text color: `#FFFFFF` for all types."
 
 export type LocusBrowserItemKind = 'variant' | 'tss-tes' | 'utr' | 'exon-intron';
 

@@ -11,23 +11,21 @@ export interface BracketAnchors {
 }
 
 /**
- * Geometric anchor points for one side of the angular bracket. The shape
- * (matching `tmp/images/example-bracket-line.svg`) is:
+ * Geometric anchor points for one side of the angular bracket:
  *
  *   start (upper anchor)
- *     │   ← top stem (vertical)
+ *     │   top stem (vertical)
  *   stem1End
- *     ╮   ← rounded corner (radius cornerRadiusPx)
+ *     ╮   rounded corner (radius cornerRadiusPx)
  *   horizontalStart ─────── horizontalEnd
- *                              ╮   ← rounded corner
+ *                              ╮   rounded corner
  *                            stem2Start
- *                              │   ← bottom stem (vertical)
+ *                              │   bottom stem (vertical)
  *                            end (lower anchor)
  *
- * `direction` is +1 when the horizontal segment travels right (right bracket)
- * and -1 when it travels left (left bracket). `cornerControlPx` is the cubic-
- * bezier control offset that approximates a quarter-circle arc of radius
- * `cornerRadiusPx`.
+ * `direction` is +1 when the horizontal travels right, -1 when it travels
+ * left. `cornerControlPx` is the cubic-bezier control offset that approximates
+ * a quarter-circle arc of radius `cornerRadiusPx`.
  */
 export interface BracketSideShape {
   start: Point;
@@ -78,28 +76,4 @@ export function computeBrackets(
     left: computeBracketSide(anchors.upperLeft, anchors.lowerLeft, topStemPx, cornerRadiusPx),
     right: computeBracketSide(anchors.upperRight, anchors.lowerRight, topStemPx, cornerRadiusPx),
   };
-}
-
-/**
- * SVG `d` string for one side of the bracket -- mostly horizontal with a
- * vertical stem and rounded corner at each end. Useful for testing the
- * geometry; the chart itself constructs ECharts graphic primitives instead
- * since `path` isn't a valid graphic.elements type.
- */
-export function bracketSideToPathD(side: BracketSideShape): string {
-  const { start, stem1End, horizontalStart, horizontalEnd, stem2Start, end } = side;
-  const cc = side.cornerControlPx;
-  const dir = side.direction;
-  return [
-    `M ${start.x} ${start.y}`,
-    `V ${stem1End.y}`,
-    `C ${stem1End.x} ${stem1End.y + cc},`,
-    `${horizontalStart.x - dir * cc} ${horizontalStart.y},`,
-    `${horizontalStart.x} ${horizontalStart.y}`,
-    `H ${horizontalEnd.x}`,
-    `C ${horizontalEnd.x + dir * cc} ${horizontalEnd.y},`,
-    `${stem2Start.x} ${stem2Start.y - cc},`,
-    `${stem2Start.x} ${stem2Start.y}`,
-    `V ${end.y}`,
-  ].join(' ');
 }

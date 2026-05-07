@@ -1,3 +1,4 @@
+import type { CallbackDataParams } from 'echarts/types/dist/shared';
 import type {
   Exon,
   GeneStructureItem,
@@ -79,18 +80,6 @@ function variantLines(variant: Variant, context: TooltipContext): string[] {
   return geneStructureLines(variant, variant.variantId, context.strand);
 }
 
-/**
- * Returns the tooltip lines for a single non-variant gene-structure item. (Variants use
- * `formatVariantTooltip` since the chromosome / gene-structure templates differ.)
- */
-export function formatGeneStructureItemLines(
-  item: Exclude<GeneStructureItem, Variant>,
-  gene: string,
-  strand: Strand,
-): string[] {
-  return geneStructureLines(item, gene, strand);
-}
-
 export function formatIntronTooltip(intron: Intron, gene: string, strand: Strand): string {
   return geneStructureLines(intron, gene, strand).join('<br>');
 }
@@ -100,7 +89,7 @@ export function formatGeneStructureItemTooltip(
   gene: string,
   strand: Strand,
 ): string {
-  return formatGeneStructureItemLines(item, gene, strand).join('<br>');
+  return geneStructureLines(item, gene, strand).join('<br>');
 }
 
 export function formatVariantTooltip(variant: Variant, context: TooltipContext): string {
@@ -114,4 +103,16 @@ export function formatVariantTooltip(variant: Variant, context: TooltipContext):
  */
 export function formatVariantGroupTooltip(variants: Variant[], context: TooltipContext): string {
   return variants.map((v) => formatVariantTooltip(v, context)).join('<br><br>');
+}
+
+/**
+ * ECharts tooltip formatter that returns a precomputed HTML string by
+ * `dataIndex`. Series builders precompute the array because the tooltip
+ * formatter runs in an ECharts callback that doesn't carry the source item.
+ */
+export function tooltipFormatterByIndex(htmlByIndex: string[]) {
+  return (rawParams: unknown): string => {
+    const params = rawParams as CallbackDataParams;
+    return htmlByIndex[params.dataIndex] ?? '';
+  };
 }

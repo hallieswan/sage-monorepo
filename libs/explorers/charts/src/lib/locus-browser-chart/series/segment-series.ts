@@ -1,5 +1,4 @@
 import type { CustomSeriesOption } from 'echarts';
-import { CallbackDataParams } from 'echarts/types/dist/shared';
 import {
   BAR_CORNER_RADIUS,
   BAR_FILL,
@@ -10,6 +9,7 @@ import {
   UTR_FILL,
   makeTooltipConfig,
 } from '../constants';
+import { tooltipFormatterByIndex } from '../tooltip-formatter';
 import type { GridCoordSys } from '../../types';
 
 export interface BarBackgroundSeriesOptions {
@@ -101,10 +101,7 @@ export function segmentSeries(opts: SegmentSeriesOptions): CustomSeriesOption {
     },
     tooltip: {
       ...makeTooltipConfig(tooltipBg),
-      formatter: (rawParams) => {
-        const params = rawParams as CallbackDataParams;
-        return tooltipsByIndex[params.dataIndex] ?? '';
-      },
+      formatter: tooltipFormatterByIndex(tooltipsByIndex),
     },
     z,
   };

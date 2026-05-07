@@ -1,14 +1,11 @@
-interface ItemMeta {
+interface RangeItem {
   tooltipHtml?: string;
-  meta?: Record<string, unknown>;
-}
-
-interface RangeItem extends ItemMeta {
   start: number;
   end: number;
 }
 
-interface PointItem extends ItemMeta {
+interface PointItem {
+  tooltipHtml?: string;
   position: number;
 }
 

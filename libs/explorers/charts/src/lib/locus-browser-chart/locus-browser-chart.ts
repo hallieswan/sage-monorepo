@@ -29,6 +29,7 @@ import {
   CHROMOSOME_VARIANT_TICK_HEIGHT_PX,
   DEFAULT_GROUPING_THRESHOLD_PX,
   FONT_FAMILY,
+  GENE_MARKER_LABEL_MIN_SPACING_PX,
   GENE_MARKER_LEADER_DIAGONAL_DX_PX,
   GENE_STRUCTURE_BAR_CENTER_Y_PX,
   GENE_STRUCTURE_BAR_TOP_Y_PX,
@@ -42,6 +43,7 @@ import {
   TES_NEGATIVE_GEOMETRY,
   TES_POSITIVE_GEOMETRY,
   TRACK_LABEL_STYLES,
+  TRACK_LABEL_X_OFFSET_PX,
   TSS_NEGATIVE_GEOMETRY,
   TSS_POSITIVE_GEOMETRY,
   VARIANT_BADGE_STYLE,
@@ -154,22 +156,6 @@ export function resolveGeneStructureRange(track: GeneStructureTrack): {
   const span = end - start;
   const pad = span * GENE_STRUCTURE_RANGE_PADDING_FRACTION;
   return { start: start - pad, end: end + pad };
-}
-
-function chromosomeTooltipContext(track: ChromosomeTrack): TooltipContext {
-  return { track: 'chromosome', chromosome: track.chromosome };
-}
-
-function geneStructureTooltipContext(track: GeneStructureTrack): TooltipContext {
-  return { track: 'gene-structure', gene: track.gene, strand: track.strand };
-}
-
-function variantTooltipFormatter(context: TooltipContext) {
-  return (variant: Variant) => variant.tooltipHtml ?? formatVariantTooltip(variant, context);
-}
-
-function variantGroupTooltipFormatter(context: TooltipContext) {
-  return (group: VariantGroup) => formatVariantGroupTooltip(group.members, context);
 }
 
 function pixelHash(...values: (string | number | undefined)[]): string {
@@ -295,8 +281,19 @@ export class LocusBrowserChart {
     const highlightedGenes = props.highlightedGenes ?? [];
     const geneStructureRange = resolveGeneStructureRange(geneStructureTrack);
 
-    const chromosomeContext = chromosomeTooltipContext(chromosomeTrack);
-    const geneStructureContext = geneStructureTooltipContext(geneStructureTrack);
+    const chromosomeContext: TooltipContext = {
+      track: 'chromosome',
+      chromosome: chromosomeTrack.chromosome,
+    };
+    const geneStructureContext: TooltipContext = {
+      track: 'gene-structure',
+      gene: geneStructureTrack.gene,
+      strand: geneStructureTrack.strand,
+    };
+    const variantFormatter = (context: TooltipContext) => (variant: Variant) =>
+      variant.tooltipHtml ?? formatVariantTooltip(variant, context);
+    const variantGroupFormatter = (context: TooltipContext) => (group: VariantGroup) =>
+      formatVariantGroupTooltip(group.members, context);
 
     const { variants: chromVariants, markers } = partitionChromosomeItems(chromosomeTrack.items);
     const {
@@ -310,16 +307,15 @@ export class LocusBrowserChart {
 
     const chromGroupedIds = collectGroupedVariantIds(groups.chromosome);
     const geneGroupedIds = collectGroupedVariantIds(groups.geneStructure);
-    // On the chromosome track, primary/secondary selected variants render as
-    // badges with connector lines instead of in-bar ticks. Filter them out of the
-    // line series so they don't appear twice.
-    const selectedIds = new Set(
-      [primarySelection.variantId, secondarySelection?.variantId].filter((id): id is string =>
-        Boolean(id),
-      ),
-    );
+    // Selected variants render as badges with connector lines on the chromosome
+    // track, so suppress their in-bar ticks to avoid double-drawing.
+    const primaryId = primarySelection.variantId;
+    const secondaryId = secondarySelection?.variantId;
     const visibleChromVariants = chromVariants.filter(
-      (v) => !chromGroupedIds.has(v.variantId) && !selectedIds.has(v.variantId),
+      (v) =>
+        !chromGroupedIds.has(v.variantId) &&
+        v.variantId !== primaryId &&
+        v.variantId !== secondaryId,
     );
     const visibleGeneVariants = geneVariants.filter((v) => !geneGroupedIds.has(v.variantId));
 
@@ -345,7 +341,7 @@ export class LocusBrowserChart {
       }),
       variantLineSeries({
         variants: visibleChromVariants,
-        tooltipFormatter: variantTooltipFormatter(chromosomeContext),
+        tooltipFormatter: variantFormatter(chromosomeContext),
         xAxisIndex: CHROMOSOME_GRID_INDEX,
         yAxisIndex: CHROMOSOME_GRID_INDEX,
         z: 2,
@@ -354,7 +350,7 @@ export class LocusBrowserChart {
       }),
       variantGroupSeries({
         groups: groups.chromosome,
-        tooltipFormatter: variantGroupTooltipFormatter(chromosomeContext),
+        tooltipFormatter: variantGroupFormatter(chromosomeContext),
         xAxisIndex: CHROMOSOME_GRID_INDEX,
         yAxisIndex: CHROMOSOME_GRID_INDEX,
         z: 3,
@@ -412,7 +408,7 @@ export class LocusBrowserChart {
       }),
       variantLineSeries({
         variants: visibleGeneVariants,
-        tooltipFormatter: variantTooltipFormatter(geneStructureContext),
+        tooltipFormatter: variantFormatter(geneStructureContext),
         xAxisIndex: GENE_STRUCTURE_GRID_INDEX,
         yAxisIndex: GENE_STRUCTURE_GRID_INDEX,
         z: 4,
@@ -446,7 +442,7 @@ export class LocusBrowserChart {
       }),
       variantGroupSeries({
         groups: groups.geneStructure,
-        tooltipFormatter: variantGroupTooltipFormatter(geneStructureContext),
+        tooltipFormatter: variantGroupFormatter(geneStructureContext),
         xAxisIndex: GENE_STRUCTURE_GRID_INDEX,
         yAxisIndex: GENE_STRUCTURE_GRID_INDEX,
         z: 6,
@@ -548,8 +544,7 @@ export class LocusBrowserChart {
     const rightmostMarkerX = markerXs[order.at(-1) ?? order[0]];
     const rightmostLabelX = rightmostMarkerX + GENE_MARKER_LEADER_DIAGONAL_DX_PX;
     const naturalSpacing = (rightmostLabelX - leftmostLabelX) / (order.length - 1);
-    const minSpacingPx = 22;
-    const spacing = Math.max(naturalSpacing, minSpacingPx);
+    const spacing = Math.max(naturalSpacing, GENE_MARKER_LABEL_MIN_SPACING_PX);
 
     for (let i = 0; i < order.length; i++) {
       labelXs[order[i]] = leftmostLabelX + i * spacing;
@@ -560,19 +555,11 @@ export class LocusBrowserChart {
   private buildTrackLabels(chromosomeTrack: ChromosomeTrack) {
     const main = TRACK_LABEL_STYLES.main;
     const sub = TRACK_LABEL_STYLES.sub;
-    const labelXPx = 16;
-
-    // Chromosome track:
-    //   - Main label "Chromosome {n}" vertically centered on the chromosome bar.
-    //   - Sub-label "Base pairs\n{start}-{end}" sits as a 2-line block whose
-    //     bottom line baseline is just above the main label.
-    // Gene-structure track:
-    //   - Main label "Gene Structure" vertically centered on the gene bar.
+    const labelXPx = TRACK_LABEL_X_OFFSET_PX;
 
     const chromMainTextY = CHROMOSOME_BAR_CENTER_Y_PX;
-    // Design spec: 30px between the bottom of the "Base pairs" sub-label and
-    // the top of the "Chromosome {n}" main label (whose top edge sits about
-    // mainFontSize/2 above its vertically-centered y).
+    // 30px gap between the sub-label baseline and the main label's top edge,
+    // which sits ~fontSize/2 above its vertically-centered y.
     const chromSubTextY = chromMainTextY - main.fontSize / 2 - 30;
 
     return [
@@ -660,12 +647,9 @@ export class LocusBrowserChart {
     }
     if (![upperX, lowerLeftX, lowerRightX].every((v) => Number.isFinite(v))) return [];
 
-    // Bracket geometry per design feedback:
-    //   - Tip is split: left tip sits BRACKET_TIP_GAP_PX/2 to the left of the
-    //     primary gene-marker x, right tip the same distance to the right.
-    //   - Tip y is BRACKET_TOP_GAP_PX below the chromosome bar's bottom edge.
-    //   - Bottom y is BRACKET_BOTTOM_GAP_PX above the gene-structure bar's
-    //     top edge.
+    // Tip is split into left/right halves around the primary gene-marker x,
+    // separated by BRACKET_TIP_GAP_PX so the bracket points to the marker
+    // rather than meeting at it.
     const upperY = CHROMOSOME_BAR_BOTTOM_Y_PX + BRACKET_TOP_GAP_PX;
     const lowerY = GENE_STRUCTURE_BAR_TOP_Y_PX - BRACKET_BOTTOM_GAP_PX;
     const tipHalfGap = BRACKET_TIP_GAP_PX / 2;

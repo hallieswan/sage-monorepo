@@ -44,21 +44,11 @@ export interface GeneMarkerSeriesOptions {
 }
 
 /**
- * Renders gene markers on the chromosome track. Per the design reference at
- * tmp/images/example-gene-marker-ling.svg, the leader has three segments:
- *
- *   1. Short vertical stub rising from the bar (at the marker's bar X).
- *   2. Diagonal kink that translates to the label's column.
- *   3. Long vertical segment up to the label anchor (at the label X).
- *
- * The label sits at the top of segment 3, rotated -90° per the plan. State
- * (default / highlighted / secondary / primary) drives stroke and label styling.
- *
- * Collision avoidance is handled outside this builder: the chart class computes
- * `labelXsPx` so adjacent labels stay horizontally separated. When two markers
- * are far apart their diagonal collapses (label X = marker X = straight line);
- * when they're close the label X drifts horizontally and the diagonal bends to
- * reach it.
+ * Renders gene markers on the chromosome track. The leader has three segments
+ * (short vertical stub from the bar, diagonal kink, long vertical to the
+ * label) with the label rotated -90° at the top. Collision avoidance is done
+ * by the chart class via `labelXsPx`: when neighbors crowd, the label X drifts
+ * sideways and the diagonal bends to reach it.
  */
 export function geneMarkerSeries(opts: GeneMarkerSeriesOptions): CustomSeriesOption {
   const { markers, labelXsPx, primary, secondary, highlightedGenes, xAxisIndex, yAxisIndex, z } =

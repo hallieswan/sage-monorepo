@@ -1,9 +1,7 @@
-import { bracketSideToPathD, computeBrackets, computeBracketSide } from './bracket-utils';
+import { computeBrackets, computeBracketSide } from './bracket-utils';
 
 describe('computeBracketSide', () => {
   it('builds the angular bracket anchors for a left side (horizontal goes left)', () => {
-    // Matches the dimensions in tmp/images/example-bracket-line.svg:
-    // upper at (568.187, 0), lower at (0.5, 36), topStem 14.8, cornerRadius 8.
     const side = computeBracketSide({ x: 568.187, y: 0 }, { x: 0.5, y: 36 }, 14.8, 8);
     expect(side.direction).toBe(-1);
     expect(side.start).toEqual({ x: 568.187, y: 0 });
@@ -46,19 +44,5 @@ describe('computeBrackets', () => {
     expect(brackets.right.direction).toBe(1);
     expect(brackets.left.start).toEqual({ x: 100, y: 50 });
     expect(brackets.right.end).toEqual({ x: 300, y: 100 });
-  });
-});
-
-describe('bracketSideToPathD', () => {
-  it('produces an SVG path d string with stem-corner-horizontal-corner-stem segments', () => {
-    const side = computeBracketSide({ x: 568.187, y: 0 }, { x: 0.5, y: 36 }, 14.8, 8);
-    const d = bracketSideToPathD(side);
-    // M to start, V to stem end, C corner, H to horizontal end, C corner, V to end.
-    expect(d).toContain('M 568.187 0');
-    expect(d).toContain('V 14.8');
-    expect(d).toContain('H 8.5');
-    expect(d).toContain('V 36');
-    // Two cubic bezier corner segments
-    expect(d.match(/C/g)).toHaveLength(2);
   });
 });

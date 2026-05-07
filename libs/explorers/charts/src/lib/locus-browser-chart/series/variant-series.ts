@@ -1,5 +1,4 @@
 import type { CustomSeriesOption } from 'echarts';
-import { CallbackDataParams } from 'echarts/types/dist/shared';
 import {
   BAR_HEIGHT_PX,
   FONT_FAMILY,
@@ -8,6 +7,7 @@ import {
   VARIANT_GROUP_BUBBLE_STYLE,
   makeTooltipConfig,
 } from '../constants';
+import { tooltipFormatterByIndex } from '../tooltip-formatter';
 import type { Variant } from '../../models/locus-browser';
 import type { GridCoordSys } from '../../types';
 import type { VariantGroup } from '../grouping-utils';
@@ -80,10 +80,7 @@ export function variantLineSeries(opts: VariantLineSeriesOptions): CustomSeriesO
     },
     tooltip: {
       ...makeTooltipConfig(TOOLTIP_BACKGROUNDS.variant),
-      formatter: (rawParams) => {
-        const params = rawParams as CallbackDataParams;
-        return tooltipsByIndex[params.dataIndex] ?? '';
-      },
+      formatter: tooltipFormatterByIndex(tooltipsByIndex),
     },
     z,
   };
@@ -161,10 +158,7 @@ export function variantGroupSeries(opts: VariantGroupSeriesOptions): CustomSerie
     },
     tooltip: {
       ...makeTooltipConfig(TOOLTIP_BACKGROUNDS.variant),
-      formatter: (rawParams) => {
-        const params = rawParams as CallbackDataParams;
-        return tooltipsByIndex[params.dataIndex] ?? '';
-      },
+      formatter: tooltipFormatterByIndex(tooltipsByIndex),
     },
     // Higher zlevel paints the bubble on a canvas above the default zlevel that
     // graphic.elements sit on, so the bubble renders ON TOP of variant badges
