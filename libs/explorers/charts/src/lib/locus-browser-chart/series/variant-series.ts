@@ -4,30 +4,16 @@ import {
   BAR_HEIGHT_PX,
   FONT_FAMILY,
   TOOLTIP_BACKGROUNDS,
+  VARIANT_COLOR,
   VARIANT_GROUP_BUBBLE_STYLE,
-  VARIANT_STYLES,
   makeTooltipConfig,
 } from '../constants';
-import type { LocusBrowserSelection, Variant } from '../../models/locus-browser';
+import type { Variant } from '../../models/locus-browser';
 import type { GridCoordSys } from '../../types';
 import type { VariantGroup } from '../grouping-utils';
 
-export type VariantSelectionState = keyof typeof VARIANT_STYLES;
-
-export function resolveVariantState(
-  variantId: string,
-  primary: LocusBrowserSelection,
-  secondary?: LocusBrowserSelection,
-): VariantSelectionState {
-  if (variantId === primary.variantId) return 'primary';
-  if (variantId === secondary?.variantId) return 'secondary';
-  return 'default';
-}
-
 export interface VariantLineSeriesOptions {
   variants: Variant[];
-  primary: LocusBrowserSelection;
-  secondary?: LocusBrowserSelection;
   tooltipFormatter: (variant: Variant) => string;
   xAxisIndex: number;
   yAxisIndex: number;
@@ -38,41 +24,31 @@ export interface VariantLineSeriesOptions {
    */
   tickHeightPx?: number;
   /**
-   * Tick width in pixels for variants whose bp range is sub-pixel. Defaults to
-   * the per-state line width. Tracks override this so chromosome variants render
-   * at 3px, gene-structure at 2px.
+   * Tick width in pixels. Variants almost always span only a few bp, which
+   * projects to sub-pixel width, so the renderer falls back to this absolute
+   * width. Required so each track can pick its own (3px chromosome, 2px gene-
+   * structure).
    */
-  lineWidthPx?: number;
-  /**
-   * Optional fill color for ALL variants, ignoring selection state. Used on
-   * the gene-structure track where every variant is teal regardless of whether
-   * it's the primary or secondary selection (the selection encoding lives on
-   * the chromosome track via badges instead).
-   */
-  fixedColor?: string;
+  lineWidthPx: number;
 }
 
 /**
- * Renders ungrouped variants as vertical lines spanning the bar height ± 10%. Color and
- * stroke width are state-driven (default / primary-selected / secondary-selected).
- *
- * Single-bp variants render as a 1px-wide line with a 0.5px offset to crisp to a single
- * pixel column.
+ * Renders variants as vertical teal ticks. Single-bp variants are widened to
+ * `lineWidthPx` and offset by 0.5px so they crisp to a clean pixel column.
+ * Selection state is encoded via the chromosome-track badges (drawn separately
+ * by the chart class), not on the tick itself, so the tick color and width
+ * are uniform across selection state.
  */
 export function variantLineSeries(opts: VariantLineSeriesOptions): CustomSeriesOption {
   const {
     variants,
-    primary,
-    secondary,
     tooltipFormatter,
     xAxisIndex,
     yAxisIndex,
     z,
     tickHeightPx = BAR_HEIGHT_PX,
     lineWidthPx,
-    fixedColor,
   } = opts;
-  const states = variants.map((v) => resolveVariantState(v.variantId, primary, secondary));
   const tooltipsByIndex = variants.map((v) => tooltipFormatter(v));
 
   return {
@@ -83,27 +59,23 @@ export function variantLineSeries(opts: VariantLineSeriesOptions): CustomSeriesO
     data: variants.map((variant) => [variant.start, 50, variant.end]),
     renderItem: (params, api) => {
       const grid = params.coordSys as unknown as GridCoordSys;
-      const state = states[params.dataIndex] ?? 'default';
-      const style = VARIANT_STYLES[state];
       const [xLeft] = api.coord([api.value(0) as number, 50]);
       const [xRight] = api.coord([api.value(2) as number, 50]);
 
-      const minWidth = lineWidthPx ?? style.lineWidth;
       let x = xLeft;
       let width = xRight - xLeft;
-      if (width < minWidth) {
-        width = minWidth;
-        x = Math.round(xLeft) + 0.5 - minWidth / 2;
+      if (width < lineWidthPx) {
+        width = lineWidthPx;
+        x = Math.round(xLeft) + 0.5 - lineWidthPx / 2;
       }
 
-      const fill = fixedColor ?? style.color;
       const y = grid.y + grid.height / 2 - tickHeightPx / 2;
       return {
         type: 'rect',
         shape: { x, y, width, height: tickHeightPx },
-        style: { fill },
+        style: { fill: VARIANT_COLOR },
         emphasisDisabled: true,
-        states: { emphasis: { style: { fill } } },
+        states: { emphasis: { style: { fill: VARIANT_COLOR } } },
       };
     },
     tooltip: {

@@ -45,7 +45,7 @@ import {
   TSS_NEGATIVE_GEOMETRY,
   TSS_POSITIVE_GEOMETRY,
   VARIANT_BADGE_STYLE,
-  VARIANT_STYLES,
+  VARIANT_COLOR,
 } from './constants';
 import { computeIntrons } from './intron-utils';
 import { computeVariantGroups, midpoint, VariantGroup } from './grouping-utils';
@@ -345,8 +345,6 @@ export class LocusBrowserChart {
       }),
       variantLineSeries({
         variants: visibleChromVariants,
-        primary: primarySelection,
-        secondary: secondarySelection,
         tooltipFormatter: variantTooltipFormatter(chromosomeContext),
         xAxisIndex: CHROMOSOME_GRID_INDEX,
         yAxisIndex: CHROMOSOME_GRID_INDEX,
@@ -414,17 +412,11 @@ export class LocusBrowserChart {
       }),
       variantLineSeries({
         variants: visibleGeneVariants,
-        primary: primarySelection,
-        secondary: secondarySelection,
         tooltipFormatter: variantTooltipFormatter(geneStructureContext),
         xAxisIndex: GENE_STRUCTURE_GRID_INDEX,
         yAxisIndex: GENE_STRUCTURE_GRID_INDEX,
         z: 4,
         lineWidthPx: GENE_STRUCTURE_VARIANT_LINE_WIDTH_PX,
-        // Selection state doesn't recolor variants on the gene-structure track;
-        // every tick stays teal. Selection is encoded via the chromosome-track
-        // badges instead.
-        fixedColor: VARIANT_STYLES.default.color,
       }),
       decorationSeries({
         items: tssList.map((tss) => ({
@@ -702,19 +694,16 @@ export class LocusBrowserChart {
 
     const entries: Array<{
       selection: LocusBrowserSelection;
-      color: string;
       offsetPx: number;
     }> = [
       {
         selection: props.primarySelection,
-        color: VARIANT_STYLES.primary.color,
         offsetPx: VARIANT_BADGE_STYLE.primaryTopFromBarBottomPx,
       },
     ];
     if (props.secondarySelection) {
       entries.push({
         selection: props.secondarySelection,
-        color: VARIANT_STYLES.secondary.color,
         offsetPx: VARIANT_BADGE_STYLE.secondaryTopFromBarBottomPx,
       });
     }
@@ -724,7 +713,7 @@ export class LocusBrowserChart {
       if (!variant) return [];
       const xPx = safeConvertToPixel(chart, CHROMOSOME_GRID_INDEX, midpoint(variant));
       if (xPx === null) return [];
-      return buildBadgeWithConnector(xPx, entry.color, variant.variantId, entry.offsetPx);
+      return buildBadgeWithConnector(xPx, VARIANT_COLOR, variant.variantId, entry.offsetPx);
     });
   }
 }

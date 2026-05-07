@@ -124,26 +124,14 @@ export const GENE_STRUCTURE_VARIANT_LINE_WIDTH_PX = 2;
 
 export const TSS_TES_DECORATION_HEIGHT_PX = 23;
 
-// ─── Variant visual hierarchy ─────────────────────────────────────────────────
-// Plan ("Variant visual hierarchy" table):
-// | State              | Line color | Line width | Persistent badge?                                  |
-// | Default            | `#469DA0`  | 1px        | none                                               |
-// | Secondary selected | `#469DA0`  | 2px        | bg `#469DA0`, text `#FFFFFF`, content = variantId  |
-// | Primary selected   | `#2C5182`  | 2px        | bg `#2C5182`, text `#FFFFFF`, content = variantId  |
-//
-// The badge background is the same hex as the line color, so callers read it from
-// `VARIANT_STYLES[state].color` instead of duplicating it on `VARIANT_BADGE_STYLE`.
+// ─── Variant color ────────────────────────────────────────────────────────────
+// Per design feedback, all variant ticks, connector lines, and badge backgrounds
+// are teal. Primary and secondary selections are differentiated by the badge's
+// vertical offset (primary higher above the bar, secondary lower), not by
+// color or stroke width. Tick widths are track-specific
+// (CHROMOSOME_VARIANT_LINE_WIDTH_PX, GENE_STRUCTURE_VARIANT_LINE_WIDTH_PX).
 
-export interface VariantStyle {
-  color: string;
-  lineWidth: number;
-}
-
-export const VARIANT_STYLES: Record<'default' | 'primary' | 'secondary', VariantStyle> = {
-  default: { color: '#469DA0', lineWidth: 1 },
-  primary: { color: '#2C5182', lineWidth: 2 },
-  secondary: { color: '#469DA0', lineWidth: 2 },
-};
+export const VARIANT_COLOR = '#469DA0';
 
 // Persistent badge for selected variants on the chromosome track only (not on the
 // gene-structure track). A vertical connector line drops from the bar up to the
