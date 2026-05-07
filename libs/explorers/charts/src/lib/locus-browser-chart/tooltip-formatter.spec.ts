@@ -42,7 +42,9 @@ describe('formatVariantTooltip', () => {
       strand: 'positive',
     });
     expect(html).toBe(
-      ['rs73492057', 'Variant', 'Start: 77,349,250', 'End: 77,349,252'].join('<br>'),
+      ['rs73492057', 'Variant', 'Strand: Positive', 'Start: 77,349,250', 'End: 77,349,252'].join(
+        '<br>',
+      ),
     );
   });
 });
@@ -103,10 +105,10 @@ describe('formatGeneStructureItemTooltip', () => {
     );
   });
 
-  it('formats a UTR with utrType', () => {
+  it('formats a UTR with utrType and strand', () => {
     const utr: Utr = { type: 'utr', utrType: "5'", start: 77322017, end: 77352015 };
     expect(formatGeneStructureItemTooltip(utr, 'PAK1', 'positive')).toBe(
-      ['PAK1', "5' UTR", 'Start: 77,322,017', 'End: 77,352,015'].join('<br>'),
+      ['PAK1', "5' UTR", 'Strand: Positive', 'Start: 77,322,017', 'End: 77,352,015'].join('<br>'),
     );
   });
 

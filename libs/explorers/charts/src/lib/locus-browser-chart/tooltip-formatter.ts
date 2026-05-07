@@ -32,6 +32,42 @@ export interface GeneStructureTooltipContext {
 
 export type TooltipContext = ChromosomeTooltipContext | GeneStructureTooltipContext;
 
+type GeneStructureTooltipItem =
+  | TranscriptionStartSite
+  | TranscriptionEndSite
+  | Utr
+  | Exon
+  | Intron
+  | Variant;
+
+const GENE_STRUCTURE_LABELS: Record<GeneStructureTooltipItem['type'], string> = {
+  'transcription-start-site': 'Transcription Start Site',
+  'transcription-end-site': 'Transcription End Site',
+  utr: 'UTR', // overridden below to include utrType prefix
+  exon: 'Exon',
+  intron: 'Intron',
+  variant: 'Variant',
+};
+
+/**
+ * Tooltip lines for any item shown on the gene-structure track. Every such
+ * tooltip shares the same shape -- header line, type label, strand line, then
+ * either a single `Loc:` line (for items with a `position`) or `Start:`/`End:`
+ * lines (for items with a bp range).
+ */
+function geneStructureLines(
+  item: GeneStructureTooltipItem,
+  header: string,
+  strand: Strand,
+): string[] {
+  const typeLabel = item.type === 'utr' ? `${item.utrType} UTR` : GENE_STRUCTURE_LABELS[item.type];
+  const positionLines =
+    'position' in item
+      ? [`Loc: ${formatBp(item.position)}`]
+      : [`Start: ${formatBp(item.start)}`, `End: ${formatBp(item.end)}`];
+  return [header, typeLabel, `Strand: ${formatStrand(strand)}`, ...positionLines];
+}
+
 function variantLines(variant: Variant, context: TooltipContext): string[] {
   if (context.track === 'chromosome') {
     return [
@@ -40,54 +76,7 @@ function variantLines(variant: Variant, context: TooltipContext): string[] {
       `Loc: ${formatBp(variant.start)}-${formatBp(variant.end)}`,
     ];
   }
-  return [
-    variant.variantId,
-    'Variant',
-    `Start: ${formatBp(variant.start)}`,
-    `End: ${formatBp(variant.end)}`,
-  ];
-}
-
-function tssLines(tss: TranscriptionStartSite, gene: string, strand: Strand): string[] {
-  return [
-    gene,
-    'Transcription Start Site',
-    `Strand: ${formatStrand(strand)}`,
-    `Loc: ${formatBp(tss.position)}`,
-  ];
-}
-
-function tesLines(tes: TranscriptionEndSite, gene: string, strand: Strand): string[] {
-  return [
-    gene,
-    'Transcription End Site',
-    `Strand: ${formatStrand(strand)}`,
-    `Loc: ${formatBp(tes.position)}`,
-  ];
-}
-
-function utrLines(utr: Utr, gene: string): string[] {
-  return [gene, `${utr.utrType} UTR`, `Start: ${formatBp(utr.start)}`, `End: ${formatBp(utr.end)}`];
-}
-
-function exonLines(exon: Exon, gene: string, strand: Strand): string[] {
-  return [
-    gene,
-    'Exon',
-    `Strand: ${formatStrand(strand)}`,
-    `Start: ${formatBp(exon.start)}`,
-    `End: ${formatBp(exon.end)}`,
-  ];
-}
-
-function intronLines(intron: Intron, gene: string, strand: Strand): string[] {
-  return [
-    gene,
-    'Intron',
-    `Strand: ${formatStrand(strand)}`,
-    `Start: ${formatBp(intron.start)}`,
-    `End: ${formatBp(intron.end)}`,
-  ];
+  return geneStructureLines(variant, variant.variantId, context.strand);
 }
 
 /**
@@ -99,20 +88,11 @@ export function formatGeneStructureItemLines(
   gene: string,
   strand: Strand,
 ): string[] {
-  switch (item.type) {
-    case 'transcription-start-site':
-      return tssLines(item, gene, strand);
-    case 'transcription-end-site':
-      return tesLines(item, gene, strand);
-    case 'utr':
-      return utrLines(item, gene);
-    case 'exon':
-      return exonLines(item, gene, strand);
-  }
+  return geneStructureLines(item, gene, strand);
 }
 
 export function formatIntronTooltip(intron: Intron, gene: string, strand: Strand): string {
-  return intronLines(intron, gene, strand).join('<br>');
+  return geneStructureLines(intron, gene, strand).join('<br>');
 }
 
 export function formatGeneStructureItemTooltip(
