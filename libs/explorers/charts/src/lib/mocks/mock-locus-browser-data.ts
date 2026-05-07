@@ -6,42 +6,52 @@ import type { LocusBrowserProps } from '../models/locus-browser';
 // (BRCA1/TP53 chr17, APOE chr19, AKT1 chr14, MTHFR/GBA chr1, VEGFA/HLA-DRB1
 // chr6, PTEN/SIRT1 chr10, CDK2/KRAS chr12, MYC chr8, JAK2 chr9, MAPK1/COMT
 // chr22, TNF chr6, BRAF chr7) -- positions here are mock display coordinates.
+//
+// The chromosome track shows a 200K-bp window centered on the primary gene
+// (PAK1 at 77,335,000), so the visible range is 77,235,000 - 77,435,000.
 
 export const pak1LocusBrowserProps: LocusBrowserProps = {
   chromosomeTrack: {
     chromosome: '11',
-    range: { start: 75_000_000, end: 80_000_000 },
+    range: { start: 77_235_000, end: 77_435_000 },
     items: [
-      { type: 'gene-marker', position: 75_150_000, gene: 'LRRC32' },
-      { type: 'gene-marker', position: 75_400_000, gene: 'BRCA1' },
-      { type: 'gene-marker', position: 75_650_000, gene: 'TP53' },
-      { type: 'gene-marker', position: 75_900_000, gene: 'APOE' },
-      { type: 'gene-marker', position: 76_150_000, gene: 'AKT1' },
-      { type: 'gene-marker', position: 76_350_000, gene: 'MTHFR' },
-      { type: 'gene-marker', position: 76_500_000, gene: 'TNF' },
-      { type: 'gene-marker', position: 76_750_000, gene: 'VEGFA' },
-      { type: 'gene-marker', position: 76_950_000, gene: 'PTEN' },
-      { type: 'gene-marker', position: 77_150_000, gene: 'CDK2' },
+      // Marker positions are irregularly spaced (gaps range from ~4 to ~13 Kbp)
+      // so the chromosome bar reads more like a realistic gene density than a
+      // uniformly stepped grid. The leftmost and rightmost markers are pulled
+      // a few Kbp inside the bar's start and end so the bar's edges aren't
+      // pinned to a marker tick.
+      { type: 'gene-marker', position: 77_242_000, gene: 'LRRC32' },
+      { type: 'gene-marker', position: 77_250_000, gene: 'BRCA1' },
+      { type: 'gene-marker', position: 77_257_000, gene: 'TP53' },
+      { type: 'gene-marker', position: 77_267_000, gene: 'APOE' },
+      { type: 'gene-marker', position: 77_278_000, gene: 'AKT1' },
+      { type: 'gene-marker', position: 77_283_000, gene: 'MTHFR' },
+      { type: 'gene-marker', position: 77_294_000, gene: 'TNF' },
+      { type: 'gene-marker', position: 77_302_000, gene: 'VEGFA' },
+      { type: 'gene-marker', position: 77_313_000, gene: 'PTEN' },
+      { type: 'gene-marker', position: 77_324_000, gene: 'CDK2' },
       { type: 'gene-marker', position: 77_335_000, gene: 'PAK1' },
-      { type: 'gene-marker', position: 77_550_000, gene: 'MYC' },
-      { type: 'gene-marker', position: 77_800_000, gene: 'KRAS' },
-      { type: 'gene-marker', position: 78_050_000, gene: 'JAK2' },
-      { type: 'gene-marker', position: 78_300_000, gene: 'MAPK1' },
-      { type: 'gene-marker', position: 78_550_000, gene: 'HLA-DRB1' },
-      { type: 'gene-marker', position: 78_800_000, gene: 'SIRT1' },
-      { type: 'gene-marker', position: 78_900_000, gene: 'BRAF' },
-      // MET sits close to BRAF in bp space. Because the chart spreads labels
-      // evenly along the chromosome, MET's label still gets its own slot at
-      // the top -- the leader's diagonal angle bends sharply to reach it.
-      { type: 'gene-marker', position: 78_960_000, gene: 'MET' },
-      { type: 'gene-marker', position: 79_150_000, gene: 'COMT' },
-      { type: 'gene-marker', position: 79_500_000, gene: 'GBA' },
-      // Chromosome-wide variants outside PAK1 -- spread far apart so they render
-      // as singletons rather than collapsing into the PAK1-region cluster.
-      { type: 'variant', start: 75_280_000, end: 75_280_002, variantId: 'rs11111111' },
-      { type: 'variant', start: 76_180_000, end: 76_180_005, variantId: 'rs22222222' },
-      { type: 'variant', start: 78_400_000, end: 78_400_010, variantId: 'rs33333333' },
-      { type: 'variant', start: 79_400_000, end: 79_400_005, variantId: 'rs44444444' },
+      { type: 'gene-marker', position: 77_342_000, gene: 'MYC' },
+      { type: 'gene-marker', position: 77_353_000, gene: 'KRAS' },
+      { type: 'gene-marker', position: 77_361_000, gene: 'JAK2' },
+      { type: 'gene-marker', position: 77_370_000, gene: 'MAPK1' },
+      { type: 'gene-marker', position: 77_378_000, gene: 'HLA-DRB1' },
+      { type: 'gene-marker', position: 77_389_000, gene: 'SIRT1' },
+      { type: 'gene-marker', position: 77_402_000, gene: 'BRAF' },
+      // MET sits close to BRAF in bp space (~4 Kbp away). Because the chart
+      // spreads labels evenly along the chromosome, MET's label still gets its
+      // own slot at the top -- the leader's diagonal angle bends sharply to
+      // reach it.
+      { type: 'gene-marker', position: 77_406_000, gene: 'MET' },
+      { type: 'gene-marker', position: 77_419_000, gene: 'COMT' },
+      { type: 'gene-marker', position: 77_428_000, gene: 'GBA' },
+      // Singleton chromosome variants outside PAK1 -- spread within the 200K
+      // window so they render as individual ticks rather than collapsing into
+      // the PAK1-region cluster.
+      { type: 'variant', start: 77_250_000, end: 77_250_002, variantId: 'rs11111111' },
+      { type: 'variant', start: 77_290_000, end: 77_290_005, variantId: 'rs22222222' },
+      { type: 'variant', start: 77_400_000, end: 77_400_010, variantId: 'rs33333333' },
+      { type: 'variant', start: 77_425_000, end: 77_425_005, variantId: 'rs44444444' },
       // PAK1-region variants (also appear on the gene-structure track).
       { type: 'variant', start: 77_318_500, end: 77_318_502, variantId: 'rs55512345' },
       { type: 'variant', start: 77_349_250, end: 77_349_252, variantId: 'rs73492057' },
@@ -86,10 +96,13 @@ export const pak1LocusBrowserProps: LocusBrowserProps = {
   highlightedGenes: ['BRAF'],
 };
 
+// TP53 chromosome track: 200K-bp window centered on TP53 at 7,680,000, so the
+// visible range is 7,580,000 - 7,780,000.
+
 export const tp53LocusBrowserProps: LocusBrowserProps = {
   chromosomeTrack: {
     chromosome: '17',
-    range: { start: 7_500_000, end: 7_900_000 },
+    range: { start: 7_580_000, end: 7_780_000 },
     items: [
       { type: 'gene-marker', position: 7_680_000, gene: 'TP53' },
       { type: 'variant', start: 7_685_000, end: 7_685_005, variantId: 'rs17880604' },
